@@ -5,59 +5,58 @@ changes? Well not anymore! Let your clients manage them in filament panel and ca
 
 This package allows you to store email templates in your database, assign them to events and send them when the event is
 fired. It also comes with Unlayer editor to manage your templates. All events properties are shared to email and you
-can use them just like you would in classic blade views.
+can use them just like you would in standard [blade views](https://laravel.com/docs/12.x/blade).
 
 ## Features
 
 - Store email templates in database
 - Assign email templates to standard laravel events
 - Send email templates when the event is fired
-- Use all of event public properties in email templates
-- Define pasible mail recipients for each event
-- Define pasible mail attachments for each event
+- Access all of event public properties in email templates
+- Define possible mail recipients for each event
+- Define possible mail attachments for each event
 - Use Unlayer editor to manage your templates
-- Access event properties automatically in mail templates
-- Use any blade directives in mail templates
+- Use blade syntax in mail templates
 - Delay emails sending for time interval after the event is fired
-- Load templates from localy created designs or from you Unlayer project
+- Load templates from localy created designs or from your Unlayer account
 - See any exceptions that occured while sending email due to badly formated mail templates
 - Easy to extend
 
 ## Screenshots
 
-List of email templates
+#### List of Email Templates
 
 ![list](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/list.png)
 
-Email detail
+#### Email Detail
 
 ![view](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/view.png)
 
-Email creation
+#### Email Creation
 
 ![edit](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/edit.png)
 
-UI for available priperties
+#### UI For Available Priperties
 
 ![merge-tags](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/merge-tags.png)
 
-Built in conditions and loops
+#### Built-in Conditions and Loops
 
 ![merge-tag-rules-detail](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/merge-tag-rules-detail.png)
 
-Custom blade
+#### Custom Blade Syntax
 
 ![custom-blade](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/custom-blade.png)
 
-Load templates
+#### Load Templates
 
 ![load-template](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/load-template.png)
 
-Email formating excepitons
+#### Email Formating Excepitons
 
 ![exception](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/exception.png)
 
-Received email
+#### Received Email
 
 ![mail](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/mail.png)
 
@@ -158,6 +157,9 @@ return [
     ],
 ];
 ```
+
+> **Note:** You can use this package without setting up Unlayer project, but option to load templates from Unlayer will
+> be disabled.
 
 Register excepitons reporting in `bootstrap/app.php`:
 
@@ -342,7 +344,7 @@ class Registered implements TriggersDatabaseMail
 }
 ```
 
-> **Note:** Properties map is only used for UI. As long as event attribute is public, you can use it in your mail
+> **Note:** Properties map is only used for UI. As long as event property is public, you can use it in your mail
 > template just like you would in a blade view.
 
 ![is-user-admin](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/is-user-admin.png)
@@ -416,10 +418,6 @@ class MailTemplate extends \MartinPetricko\LaravelDatabaseMail\Models\MailTempla
 Update migration file `database/migrations/xxxx_xx_xx_xxxxxx_create_mail_templates_table.php`:
 
 ```php
-<?php
-
-declare(strict_types=1);
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -431,8 +429,8 @@ return new class () extends Migration {
             $table->id();
             $table->string('event')->index();
             $table->string('name');
-            $table->json('subject');            // Change to json
-            $table->json('body');               // Change to json
+            $table->json('subject');            // Changed type to json
+            $table->json('body');               // Changed type to json
             $table->json('meta')->nullable();
             $table->json('recipients');
             $table->json('attachments');
@@ -557,7 +555,7 @@ class ViewMailTemplate extends \MartinPetricko\FilamentDatabaseMail\Resources\Ma
 }
 ```
 
-#### Register Your MailTemplateResource
+#### Register Your MailTemplateResource to Plugin
 
 ```php
 ->plugins([
