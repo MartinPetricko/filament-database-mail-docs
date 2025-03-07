@@ -564,6 +564,8 @@ class ViewMailTemplate extends \MartinPetricko\FilamentDatabaseMail\Resources\Ma
 ])
 ```
 
+> **Note:** Don't forget to set your users [preferred locale](https://laravel.com/docs/12.x/mail#user-preferred-locales), so sent mails are in the right language.
+
 **Voilà!** Enjoy your translatable email templates that can be managed from filament panel.
 
 ## Changelog
