@@ -21,6 +21,7 @@ can use them just like you would in classic blade views.
 - Delay emails sending for time interval after the event is fired
 - Load templates from localy created designs or from you Unlayer project
 - See any exceptions that occured while sending email due to badly formated mail templates
+- Easy to extend
 
 ## Screenshots
 
@@ -40,7 +41,7 @@ UI for available priperties
 
 ![merge-tags](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/merge-tags.png)
 
-Built in conditions and loops 
+Built in conditions and loops
 
 ![merge-tag-rules-detail](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/merge-tag-rules-detail.png)
 
@@ -100,8 +101,8 @@ return [
      * Models that are used by Laravel Database Mail.
      */
     'models' => [
-        'mail_template' => \MartinPetricko\LaravelDatabaseMail\Models\MailTemplate::class,
         'mail_exception' => \MartinPetricko\LaravelDatabaseMail\Models\MailException::class,
+        'mail_template' => \MartinPetricko\LaravelDatabaseMail\Models\MailTemplate::class,
     ],
 
     /**
@@ -277,6 +278,81 @@ class Registered implements TriggersDatabaseMail
 }
 ```
 
+#### Event Properties
+
+Public properties of the event will try to get parsed
+into [Unlayer merge tags](https://docs.unlayer.com/builder/dynamic-content/merge-tags) automatically via registered
+resolvers in your `config/database-mail.php` file. However not all properties can be parsed into merge tags, so you can
+define your own resolvers or add properties map to the event.
+
+```php
+namespace App\Events;
+
+use MartinPetricko\LaravelDatabaseMail\Events\Contracts\TriggersDatabaseMail;
+use MartinPetricko\LaravelDatabaseMail\Properties\Property;
+
+class Registered implements TriggersDatabaseMail
+{
+    /**
+     * @param bool $isUserAdmin
+     * @param ?array{lorem: string, ipsum: string} $additionalData
+     * @param Product[] $products
+     * @param string[] $sponsorNames
+     */
+    public function __construct(
+        public bool $isUserAdmin,
+        public ?array $additionalData,
+        public array $products,
+        public array $sponsorNames,
+    ) {
+        //
+    }
+    
+    //...
+    
+    /**
+     * List of additional properties that can be used in the mail template
+     * and were not automatically resolved via registered resolvers.
+     *
+     * @return array<string, Property>
+     */
+    public static function mergeProperties(): array
+    {
+        return [
+            'isUserAdmin' => new Property('isUserAdmin')
+                ->boolean(),
+            'additionalData' => (new Property('additionalData'))
+                ->nullable()
+                ->properties([
+                    new Property('lorem'),
+                    new Property('ipsum'),
+                ]),
+            'products' => new Property('products')
+                ->traversable()
+                ->properties([
+                    (new Property('name'))
+                        ->accessor('->getName()'),
+                    new Property('url')
+                        ->accessor('->getProductUrl()'),
+                ]),
+            'sponsorNames' => new Property('sponsorNames')
+                ->traversable(),
+        ];
+    }
+}
+```
+
+> **Note:** Properties map is only used for UI. As long as event attribute is public, you can use it in your mail
+> template just like you would in a blade view.
+
+![is-user-admin](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/is-user-admin.png)
+
+![additional-data](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/additional-data.png)
+
+![products](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/products.png)
+
+![sponsor-names](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/sponsor-names.png)
+
 ### Register Events
 
 Add list of events to your published `config/database-mail.php` file:
@@ -305,10 +381,199 @@ use App\Events\Registered;
 Registered::dispatch($registeredUser, $registeredUserEmailVerificationUrl);
 ```
 
+## Extensibility
+
+You can override MailTemplateResource to you liking. For example let's
+implement [filamentphp/spatie-laravel-translatable-plugin](https://github.com/filamentphp/spatie-laravel-translatable-plugin).
+
+#### Setup Plugin
+
+Follow [installation instructions](https://github.com/filamentphp/spatie-laravel-translatable-plugin) for
+filamentphp/spatie-laravel-translatable-plugin.
+
+#### Prepare Your Translatable Model
+
+```php
+<?php
+
+namespace App\Models;
+
+use Spatie\Translatable\HasTranslations;
+
+class MailTemplate extends \MartinPetricko\LaravelDatabaseMail\Models\MailTemplate
+{
+    use HasTranslations;
+
+    /** @var string[] */
+    public array $translatable = [
+        'subject',
+        'body',
+        'meta',
+    ];
+}
+```
+
+Update migration file `database/migrations/xxxx_xx_xx_xxxxxx_create_mail_templates_table.php`:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class () extends Migration {
+    public function up(): void
+    {
+        Schema::create('mail_templates', static function (Blueprint $table) {
+            $table->id();
+            $table->string('event')->index();
+            $table->string('name');
+            $table->json('subject');            // Change to json
+            $table->json('body');               // Change to json
+            $table->json('meta')->nullable();
+            $table->json('recipients');
+            $table->json('attachments');
+            $table->string('delay')->nullable();
+            $table->boolean('is_active');
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('mail_templates');
+    }
+};
+```
+
+Update your `config/database-mail.php` file to use your model:
+
+```php
+'models' => [
+    'mail_exception' => \MartinPetricko\LaravelDatabaseMail\Models\MailException::class,
+    'mail_template' => App\Models\MailTemplate::class,
+],
+```
+
+#### Extend MailTemplateResource
+
+Create `app/Filament/Admin/Resources/MailTemplateResource.php` file:
+
+```php
+namespace App\Filament\Admin\Resources;
+
+use App\Filament\Admin\Resources\MailTemplateResource\Pages\CreateMailTemplate;
+use App\Filament\Admin\Resources\MailTemplateResource\Pages\EditMailTemplate;
+use App\Filament\Admin\Resources\MailTemplateResource\Pages\ViewMailTemplate;
+use Filament\Resources\Concerns\Translatable;
+
+class MailTemplateResource extends \MartinPetricko\FilamentDatabaseMail\Resources\MailTemplateResource
+{
+    use Translatable;
+
+    public static function getPages(): array
+    {
+        return array_merge(parent::getPages(), [
+            'create' => CreateMailTemplate::route('/create'),
+            'view' => ViewMailTemplate::route('/{record}'),
+            'edit' => EditMailTemplate::route('/{record}/edit'),
+        ]);
+    }
+}
+```
+
+Create `app/Filament/Admin/Resources/MailTemplateResource/Pages/CreateMailTemplate.php` file:
+
+```php
+namespace App\Filament\Admin\Resources\MailTemplateResource\Pages;
+
+use App\Filament\Admin\Resources\MailTemplateResource;
+use Filament\Actions\LocaleSwitcher;
+use Filament\Resources\Pages\CreateRecord\Concerns\Translatable;
+
+class CreateMailTemplate extends \MartinPetricko\FilamentDatabaseMail\Resources\MailTemplateResource\Pages\CreateMailTemplate
+{
+    use Translatable;
+
+    protected static string $resource = MailTemplateResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return array_merge(parent::getHeaderActions(), [
+            LocaleSwitcher::make(),
+        ]);
+    }
+}
+```
+
+Create `app/Filament/Admin/Resources/MailTemplateResource/Pages/EditMailTemplate.php` file:
+
+```php
+namespace App\Filament\Admin\Resources\MailTemplateResource\Pages;
+
+use App\Filament\Admin\Resources\MailTemplateResource;
+use Filament\Actions\LocaleSwitcher;
+use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
+
+class EditMailTemplate extends \MartinPetricko\FilamentDatabaseMail\Resources\MailTemplateResource\Pages\EditMailTemplate
+{
+    use Translatable;
+
+    protected static string $resource = MailTemplateResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return array_merge(parent::getHeaderActions(), [
+            LocaleSwitcher::make(),
+        ]);
+    }
+}
+```
+
+Create `app/Filament/Admin/Resources/MailTemplateResource/Pages/ViewMailTemplates.php` file:
+
+```php
+namespace App\Filament\Admin\Resources\MailTemplateResource\Pages;
+
+use App\Filament\Admin\Resources\MailTemplateResource;
+use Filament\Actions\LocaleSwitcher;
+use Filament\Resources\Pages\ViewRecord\Concerns\Translatable;
+
+class ViewMailTemplate extends \MartinPetricko\FilamentDatabaseMail\Resources\MailTemplateResource\Pages\ViewMailTemplate
+{
+    use Translatable;
+
+    protected static string $resource = MailTemplateResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return array_merge(parent::getHeaderActions(), [
+            LocaleSwitcher::make(),
+        ]);
+    }
+}
+```
+
+#### Register Your MailTemplateResource
+
+```php
+->plugins([
+    FilamentDatabaseMailPlugin::make()
+        ->mailTemplateResource(\App\Filament\Admin\Resources\MailTemplateResource::class),
+])
+```
+
+**Voilà!** Enjoy your translatable email templates that can be managed from filament panel.
+
 ## Changelog
 
-Please see [CHANGELOG](https://github.com/MartinPetricko/filament-database-mail-docs/blob/main/CHANGELOG.md) for more information on what has changed recently.
+Please see [CHANGELOG](https://github.com/MartinPetricko/filament-database-mail-docs/blob/main/CHANGELOG.md) for more
+information on what has changed recently.
 
 ## Security Vulnerabilities
 
-Please review [our security policy](https://github.com/MartinPetricko/filament-database-mail-docs/security/policy) on how to report security vulnerabilities.
+Please review [our security policy](https://github.com/MartinPetricko/filament-database-mail-docs/security/policy) on
+how to report security vulnerabilities.
