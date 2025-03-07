@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.0] - 2025-01-31
+## [1.0.0] - 2025-03-08
 ### Added
 - Added initial version of Filament Database Mail
 
-[unreleased]: https://github.com/martinpetricko/filament-database-mail/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/martinpetricko/filament-database-mail/releases/tag/v0.1.0
+[unreleased]: https://github.com/martinpetricko/filament-database-mail/compare/1.0.0...HEAD
+[1.0.0]: https://github.com/martinpetricko/filament-database-mail/releases/tag/1.0.0
