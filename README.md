@@ -62,11 +62,69 @@ can use them just like you would in standard [blade views](https://laravel.com/d
 
 ## Installation
 
-You can install the package via composer:
+### Requirements
+
+Filament Database Mail requires `PHP ^8.2`, `Filament ^3.3` and `Laravel 11+`.
+
+### Activating Your License on AnyStack
+
+Filament Database Mail uses AnyStack to handle payment, licensing, and distribution.
+
+During the purchasing process, AnyStack will provide you with a license key. You will also be asked by AnyStack to
+activate your license by providing a domain. This is usually the domain of where your final project will live. Once you
+have provided a domain, your license key will be activated and you can proceed with installing with composer below.
+
+### Installing with Composer
+
+To Install Filament Database Mail with Composer, you'll need to add the following package repository to your
+`composer.json` file:
+
+```json
+{
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://filament-database-mail.composer.sh"
+        }
+    ]
+}
+```
+
+Once the repository has been added to the composer.json file, they can install Filament Database Mail like any other
+composer package using the composer require command:
 
 ```bash
 composer require martinpetricko/filament-database-mail
 ```
+
+Next, you will be prompted to provide your username and password.
+
+```bash
+Loading composer repositories with package information
+Authentication required (filament-database-mail.composer.sh):
+Username: [licensee-email]
+Password: [license-key]
+```
+
+Your username will be your email address and the password will is your license key, followed by a colon (:), followed by
+the domain you are activating. For example, let's say we have the following email and license activation:
+
+- Contact email: john@gmail.com
+- License key: 8c21df8f-6273-4932-b4ba-8bcc723ef500
+- Activation fingerprint: my_domain.com
+
+You will need to enter the above information as follows when prompted for your credentials:
+
+```bash
+Loading composer repositories with package information
+Authentication required (filament-database-mail.composer.sh):
+Username: john@gmail.com
+Password: 8c21df8f-6273-4932-b4ba-8bcc723ef500:my_domain.com
+```
+
+The license key and fingerprint should be separated by a colon (:).
+
+### Setting up Filament Database Mail
 
 Publish and run the migrations with:
 
@@ -564,7 +622,9 @@ class ViewMailTemplate extends \MartinPetricko\FilamentDatabaseMail\Resources\Ma
 ])
 ```
 
-> **Note:** Don't forget to set your users [preferred locale](https://laravel.com/docs/12.x/mail#user-preferred-locales), so sent mails are in the right language.
+> **Note:** Don't forget to set your
+> users [preferred locale](https://laravel.com/docs/12.x/mail#user-preferred-locales), so sent mails are in the right
+> language.
 
 **Voilà!** Enjoy your translatable email templates that can be managed from filament panel.
 
