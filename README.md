@@ -22,6 +22,10 @@ can use them just like you would in standard [blade views](https://laravel.com/d
 - See any exceptions that occured while sending email due to badly formated mail templates
 - Easy to extend
 
+> **Security Notice:** This package allows php code exections as mail templates are parsed
+> with [Blade::render()](https://laravel.com/docs/12.x/blade#rendering-inline-blade-templates). So only administrators
+> with highest level of access should be able to use this package.
+
 ## Screenshots
 
 #### List of Email Templates
