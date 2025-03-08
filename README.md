@@ -445,6 +445,41 @@ use App\Events\Registered;
 Registered::dispatch($registeredUser, $registeredUserEmailVerificationUrl);
 ```
 
+## Authorization
+
+In addition to standard policy actions, you can add methods to allow mail template actiovation/deactivation:
+
+```php
+/**
+ * Used to activate/deactivate single mail template.
+ */
+public function activate(User $user, MailTemplate $mailTemplate): bool
+{
+    return true;
+}
+
+/**
+ * Used to activate/deactivate mail templates via bulk actions.
+ */
+public function activateAny(User $user): bool
+{
+    return true;
+}
+```
+
+Register your policy:
+
+```php
+use App\Policies\MailTemplatePolicy;
+use Illuminate\Support\Facades\Gate;
+use MartinPetricko\LaravelDatabaseMail\Models\MailTemplate;
+
+public function boot(): void
+{
+    Gate::policy(MailTemplate::class, MailTemplatePolicy::class);
+}
+```
+
 ## Extensibility
 
 You can override MailTemplateResource to you liking. For example let's
@@ -514,7 +549,7 @@ Update your `config/database-mail.php` file to use your model:
 ```php
 'models' => [
     'mail_exception' => \MartinPetricko\LaravelDatabaseMail\Models\MailException::class,
-    'mail_template' => App\Models\MailTemplate::class,
+    'mail_template' => \App\Models\MailTemplate::class,
 ],
 ```
 
