@@ -90,7 +90,7 @@ To Install Filament Database Mail with Composer, you'll need to add the followin
 }
 ```
 
-Once the repository has been added to the composer.json file, they can install Filament Database Mail like any other
+Once the repository has been added to the composer.json file, you can install Filament Database Mail like any other
 composer package using the composer require command:
 
 ```bash
@@ -106,7 +106,7 @@ Username: [licensee-email]
 Password: [license-key]
 ```
 
-Your username will be your email address and the password will is your license key, followed by a colon (:), followed by
+Your username will be your email address and the password is your license key, followed by a colon (:), followed by
 the domain you are activating. For example, let's say we have the following email and license activation:
 
 - Contact email: john@gmail.com
