@@ -7,6 +7,10 @@ This package allows you to store email templates in your database, assign them t
 fired. It also comes with Unlayer editor to manage your templates. All events properties are shared to email and you
 can use them just like you would in standard [blade views](https://laravel.com/docs/12.x/blade).
 
+> **Security Notice:** This package allows php code exections as mail templates are parsed
+> with [Blade::render()](https://laravel.com/docs/12.x/blade#rendering-inline-blade-templates). So only administrators
+> with highest level of access should be able to use this package.
+
 ## Features
 
 - Store email templates in database
@@ -21,10 +25,6 @@ can use them just like you would in standard [blade views](https://laravel.com/d
 - Load templates from localy created designs or from your Unlayer account
 - See any exceptions that occured while sending email due to badly formated mail templates
 - Easy to extend
-
-> **Security Notice:** This package allows php code exections as mail templates are parsed
-> with [Blade::render()](https://laravel.com/docs/12.x/blade#rendering-inline-blade-templates). So only administrators
-> with highest level of access should be able to use this package.
 
 ## Screenshots
 
@@ -196,7 +196,7 @@ return [
 Optionaly you can publish other config file:
 
 ```bash
-php artisan vendor:publish --tag="filament-mail-config"
+php artisan vendor:publish --tag="filament-database-mail-config"
 ```
 
 This is the contents of the published config file:
@@ -443,6 +443,41 @@ use App\Events\Registered;
 // ... your bussiness logic
 
 Registered::dispatch($registeredUser, $registeredUserEmailVerificationUrl);
+```
+
+### Import/Export Mail Templates
+
+You can prepare your mail templates before deploying your application to production. And then import them in your
+seeders.
+
+#### Export Mail Templates
+
+```bash
+php artisan mail:export
+```
+
+#### Import Mail Templates
+
+```bash
+php artisan mail:import
+```
+
+#### Seeder Setup
+
+```php
+use Illuminate\Support\Facades\Artisan;
+
+public function run(): void
+{
+    /**
+     * Import all mail templates from json files and replace localhost url with production url. 
+     */
+    Artisan::call('mail:import', [
+        '--all' => true,
+        '--search' => 'http:\/\/localhost',
+        '--replace' => config('app.url'),
+    ]);
+}
 ```
 
 ## Authorization
