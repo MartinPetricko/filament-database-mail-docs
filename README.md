@@ -1,29 +1,34 @@
 ## Introduction
 
-Are you tired of writing email templates in laravel, managing all translations and editing them always when something
-changes? Well not anymore! Let your clients manage them in filament panel and call it a feature!
+Are you tired of writing email templates in Laravel, managing all translations and constantly editing them whenever
+something changes? Well, not anymore! Let your clients manage them in filament panel and call it a feature!
 
-This package allows you to store email templates in your database, assign them to events and send them when the event is
-fired. It also comes with Unlayer editor to manage your templates. All events properties are shared to email and you
-can use them just like you would in standard [blade views](https://laravel.com/docs/12.x/blade).
+Filament Database Mail is a FilamentPHP implementation of an
+open-source [Laravel Database Mail](https://github.com/MartinPetricko/laravel-database-mail) package that lets you
+store email templates in your database, link them to events, and automatically send them when those events are
+dispatched. All event properties are shared to email and you can use them just like you would in
+standard [Blade views](https://laravel.com/docs/12.x/blade).
 
-> **Security Notice:** This package allows php code exections as mail templates are parsed
+This package prepares FilamentPHP resources for managing your email templates with an implementation
+of [Unlayer Editor](https://docs.unlayer.com/builder/latest/email-builder).
+
+> **Security Notice:** This package allows php code executions as email templates are parsed
 > with [Blade::render()](https://laravel.com/docs/12.x/blade#rendering-inline-blade-templates). So only administrators
 > with highest level of access should be able to use this package.
 
 ## Features
 
 - Store email templates in database
-- Assign email templates to standard laravel events
-- Send email templates when the event is fired
+- Assign email templates to standard Laravel events
+- Send emails when the events are fired
 - Access all of event public properties in email templates
-- Define possible mail recipients for each event
-- Define possible mail attachments for each event
+- Define possible email recipients for each event
+- Define possible email attachments for each event
 - Use Unlayer editor to manage your templates
-- Use blade syntax in mail templates
-- Delay emails sending for time interval after the event is fired
-- Load templates from localy created designs or from your Unlayer account
-- See any exceptions that occured while sending email due to badly formated mail templates
+- Use blade syntax in email templates
+- Delay emails sending for time interval after the event is dispatched
+- Load templates from locally created designs or from your Unlayer account
+- See any exceptions that occurred while sending email due to badly formatted mail templates
 - Easy to extend
 
 ## Screenshots
@@ -40,7 +45,7 @@ can use them just like you would in standard [blade views](https://laravel.com/d
 
 ![edit](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/edit.png)
 
-#### UI For Available Priperties
+#### UI for Available Properties
 
 ![merge-tags](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/merge-tags.png)
 
@@ -56,7 +61,7 @@ can use them just like you would in standard [blade views](https://laravel.com/d
 
 ![load-template](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/load-template.png)
 
-#### Email Formating Excepitons
+#### Email Formatting Exceptions
 
 ![exception](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/exception.png)
 
@@ -74,9 +79,8 @@ Filament Database Mail requires `PHP ^8.2`, `Filament ^3.3` and `Laravel 11+`.
 
 Filament Database Mail uses AnyStack to handle payment, licensing, and distribution.
 
-During the purchasing process, AnyStack will provide you with a license key. You will also be asked by AnyStack to
-activate your license by providing a domain. This is usually the domain of where your final project will live. Once you
-have provided a domain, your license key will be activated and you can proceed with installing with composer below.
+During the purchasing process, AnyStack will provide you with a license key. Once your license key is activated, you can
+proceed installing with composer below.
 
 ### Installing with Composer
 
@@ -106,16 +110,15 @@ Next, you will be prompted to provide your username and password.
 ```bash
 Loading composer repositories with package information
 Authentication required (filament-database-mail.composer.sh):
-Username: [licensee-email]
+Username: [license-email]
 Password: [license-key]
 ```
 
-Your username will be your email address and the password is your license key, followed by a colon (:), followed by
-the domain you are activating. For example, let's say we have the following email and license activation:
+Your username will be your email address and the password is your license key. For example, let's say we have the
+following email and license activation:
 
 - Contact email: john@gmail.com
 - License key: 8c21df8f-6273-4932-b4ba-8bcc723ef500
-- Activation fingerprint: my_domain.com
 
 You will need to enter the above information as follows when prompted for your credentials:
 
@@ -123,10 +126,8 @@ You will need to enter the above information as follows when prompted for your c
 Loading composer repositories with package information
 Authentication required (filament-database-mail.composer.sh):
 Username: john@gmail.com
-Password: 8c21df8f-6273-4932-b4ba-8bcc723ef500:my_domain.com
+Password: 8c21df8f-6273-4932-b4ba-8bcc723ef500
 ```
-
-The license key and fingerprint should be separated by a colon (:).
 
 ### Setting up Filament Database Mail
 
@@ -143,7 +144,7 @@ Publish the config file with:
 php artisan vendor:publish --tag="database-mail-config"
 ```
 
-This is the contents of the published config file:
+These are the contents of the published config file:
 
 ```php
 return [
@@ -173,7 +174,7 @@ return [
 
     /**
      * Resolvers are used to automatically resolve properties of the event.
-     * This property definitions can be later shown to user as available
+     * These property definitions can be later shown to user as available
      * variables that can be used in the mail template.
      */
     'resolvers' => [
@@ -193,13 +194,13 @@ return [
 ];
 ```
 
-Optionaly you can publish other config file:
+Optionally, you can publish other config file:
 
 ```bash
 php artisan vendor:publish --tag="filament-database-mail-config"
 ```
 
-This is the contents of the published config file:
+These are the contents of the published config file:
 
 ```php
 return [
@@ -223,7 +224,7 @@ return [
 > **Note:** You can use this package without setting up Unlayer project, but option to load templates from Unlayer will
 > be disabled.
 
-Register excepitons reporting in `bootstrap/app.php`:
+Register exceptions reporting in `bootstrap/app.php`:
 
 ```php
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -310,32 +311,36 @@ class Registered implements TriggersDatabaseMail
     }
 
     /**
-     * List of possible recipients that can receive the mail.
-     * MailTemplate stores keys of recipients that will
-     * receive the mail when event is fired.
+     * List of possible recipients that can receive the email.
+     * MailTemplate stores recipient keys that will
+     * receive the email when event is triggered.
      *
-     * @return array<string, Recipient>
+     * @return Recipient<Registered>[]
      */
     public static function getRecipients(): array
     {
         return [
             'user' => new Recipient('Registered User', fn (Registered $event) => $event->user),
             'inviter-user' => new Recipient('Inviter user', fn (Registered $event) => $event->inviter),
+            'all' => new Recipient('All', fn (Registered $event) => [
+                $event->user,
+                $event->inviter,
+            ]),
         ];
     }
 
     /**
-     * List of possible attachments that can be attached to the mail.
-     * MailTemplate stores keys of attachments that will be
-     * attached to the mail when event is fired.
+     * List of possible attachments that can be attached to the email.
+     * MailTemplate stores attachment keys that will be attached 
+     * to the email when the event is triggered.
      *
-     * @return array<string, Attachment>
+     * @return Attachment<Registered>[]
      */
     public static function getAttachments(): array
     {
         return [
             'terms-of-service' => new Attachment('Terms of Services', fn (Registered $event) => [
-                \Illuminate\Mail\Mailables\Attachment::fromUrl('https://my-project.com/tos')->as('tos.pdf')
+                \Illuminate\Mail\Attachment::fromUrl('https://my-project.com/tos')->as('tos.pdf'),
             ]),
         ];
     }
@@ -419,7 +424,7 @@ class Registered implements TriggersDatabaseMail
 
 ### Register Events
 
-Add list of events to your published `config/database-mail.php` file:
+Add a list of events to your published `config/database-mail.php` file:
 
 ```php
 'events' => [
@@ -431,23 +436,23 @@ Add list of events to your published `config/database-mail.php` file:
 
 ![create](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/create.png)
 
-> **Note:** Don't forget to activate email after you created the template, as by default it is deactivated.
+> **Note:** Don't forget to activate the email after creating the template, as by default it is deactivated.
 
 ### Dispatch Event
 
-Dispatch event as you would any other laravel event with it's parameters.
+Dispatch the event as you would any other Laravel event with its parameters.
 
 ```php
 use App\Events\Registered;
 
-// ... your bussiness logic
+// ... your business logic
 
 Registered::dispatch($registeredUser, $registeredUserEmailVerificationUrl);
 ```
 
 ### Import/Export Mail Templates
 
-You can prepare your mail templates before deploying your application to production. And then import them in your
+You can prepare your mail templates before deploying your application to production and then import them in your
 seeders.
 
 #### Export Mail Templates
@@ -482,7 +487,7 @@ public function run(): void
 
 ## Authorization
 
-In addition to standard policy actions, you can add methods to allow mail template actiovation/deactivation:
+In addition to standard policy actions, you can add methods to allow mail template activation/deactivation:
 
 ```php
 /**
@@ -517,7 +522,7 @@ public function boot(): void
 
 ## Extensibility
 
-You can override MailTemplateResource to you liking. For example let's
+You can override MailTemplateResource to your liking. For example let's
 implement [filamentphp/spatie-laravel-translatable-plugin](https://github.com/filamentphp/spatie-laravel-translatable-plugin).
 
 #### Setup Plugin
@@ -628,8 +633,6 @@ class CreateMailTemplate extends \MartinPetricko\FilamentDatabaseMail\Resources\
 {
     use Translatable;
 
-    protected static string $resource = MailTemplateResource::class;
-
     protected function getHeaderActions(): array
     {
         return array_merge(parent::getHeaderActions(), [
@@ -652,8 +655,6 @@ class EditMailTemplate extends \MartinPetricko\FilamentDatabaseMail\Resources\Ma
 {
     use Translatable;
 
-    protected static string $resource = MailTemplateResource::class;
-
     protected function getHeaderActions(): array
     {
         return array_merge(parent::getHeaderActions(), [
@@ -675,8 +676,6 @@ use Filament\Resources\Pages\ViewRecord\Concerns\Translatable;
 class ViewMailTemplate extends \MartinPetricko\FilamentDatabaseMail\Resources\MailTemplateResource\Pages\ViewMailTemplate
 {
     use Translatable;
-
-    protected static string $resource = MailTemplateResource::class;
 
     protected function getHeaderActions(): array
     {
