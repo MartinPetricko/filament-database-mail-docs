@@ -16,6 +16,12 @@ of [Unlayer Editor](https://docs.unlayer.com/builder/latest/email-builder).
 > with [Blade::render()](https://laravel.com/docs/12.x/blade#rendering-inline-blade-templates). So only administrators
 > with highest level of access should be able to use this package.
 
+## Live Demo
+
+To see the plugin in action, you can visit the [live demo](https://demo.filamentphp.com/o/mail-demo).
+
+[![Youtube video](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/video-thumb.png)](https://youtu.be/wexzG0_KjKg?si=KghM4dWLFoPVenRf)
+
 ## Features
 
 - Store email templates in database
@@ -189,7 +195,7 @@ return [
      * of events can be shown to user as available events.
      */
     'events' => [
-        // \Illuminate\Auth\Events\Registered::class,
+        // \App\Events\YourEvent::class
     ],
 ];
 ```
@@ -258,7 +264,7 @@ Register and configure plugin for your filament panel:
         ->navigationLabel('Mails')
         ->navigationGroup('Settings')
         ->navigationIcon('heroicon-o-envelope')
-        ->navigationSort(5);
+        ->navigationSort(5),
 ])
 ```
 
@@ -266,7 +272,8 @@ Register and configure plugin for your filament panel:
 
 ### Create Events
 
-Add `TriggersDatabaseMail` interface and `CanTriggerDatabaseMail` trait to your standard laravel events.
+Add `TriggersDatabaseMail` interface and `CanTriggerDatabaseMail` trait to your
+standard [laravel events](https://laravel.com/docs/master/events).
 
 ```php
 namespace App\Events;
@@ -434,13 +441,14 @@ Add a list of events to your published `config/database-mail.php` file:
 
 ### Create Mail Template
 
-![create](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/create.png)
+![edit](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/edit.png)
 
 > **Note:** Don't forget to activate the email after creating the template, as by default it is deactivated.
 
 ### Dispatch Event
 
-Dispatch the event as you would any other Laravel event with its parameters.
+Dispatch the event as you would any other [Laravel event](https://laravel.com/docs/master/events#dispatching-events)
+with its parameters.
 
 ```php
 use App\Events\Registered;
@@ -700,6 +708,172 @@ class ViewMailTemplate extends \MartinPetricko\FilamentDatabaseMail\Resources\Ma
 > language.
 
 **Voilà!** Enjoy your translatable email templates that can be managed from filament panel.
+
+## Overriding FilamentPHP Auth Emails
+
+If you want to create email templates for auth actions and override default FilamentPHP emails, you can do it by editing
+auth pages like this:
+
+### Register
+
+Create `app/Filament/Admin/Pages/Auth/Register.php` page that extends `Filament\Pages\Auth\Register` and override
+`sendEmailVerificationNotification` method to dispatch your custom events.
+
+```php
+namespace App\Filament\Admin\Pages\Auth;
+
+use App\Events\EmailVerificationRequested;
+use App\Events\Registered;
+use Filament\Facades\Filament;
+use Illuminate\Database\Eloquent\Model;
+
+class Register extends \Filament\Pages\Auth\Register
+{
+    protected function sendEmailVerificationNotification(Model $user): void
+    {
+        if (!$user instanceof MustVerifyEmail) {
+            return;
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return;
+        }
+
+        if (! method_exists($user, 'notify')) {
+            $userClass = $user::class;
+
+            throw new Exception("Model [{$userClass}] does not have a [notify()] method.");
+        }
+
+        // Dispatch our custom Registered event
+        Registered::dispatch($user);
+
+        // Dispatch our custom EmailVerificationRequested event
+        EmailVerificationRequested::dispatch($user, Filament::getVerifyEmailUrl($user));
+    }
+}
+```
+
+### Email Verification Prompt
+
+Create `app/Filament/Admin/Pages/Auth/EmailVerificationPrompt.php` page that extends `Filament\Pages\Auth\EmailVerification\EmailVerificationPrompt` and override
+`sendEmailVerificationNotification` method to dispatch your custom events.
+
+```php
+namespace App\Filament\Admin\Pages\Auth;
+
+use App\Events\EmailVerificationRequested;
+use App\Models\User;
+use Filament\Facades\Filament;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+class EmailVerificationPrompt extends \Filament\Pages\Auth\EmailVerification\EmailVerificationPrompt
+{
+    protected function sendEmailVerificationNotification(MustVerifyEmail $user): void
+    {
+        if ($user->hasVerifiedEmail()) {
+            return;
+        }
+
+        if (! method_exists($user, 'notify')) {
+            $userClass = $user::class;
+
+            throw new Exception("Model [{$userClass}] does not have a [notify()] method.");
+        }
+
+        // Dispatch our custom EmailVerificationRequested event
+        EmailVerificationRequested::dispatch($user, Filament::getVerifyEmailUrl($user));
+    }
+}
+```
+
+### Request Password Reset
+
+Create `app/Filament/Admin/Pages/Auth/RequestPasswordReset.php` page that extends `Filament\Pages\Auth\PasswordReset\RequestPasswordReset` and override
+`request` method to dispatch your custom events.
+
+```php
+namespace App\Filament\Admin\Pages\Auth;
+
+use App\Events\PasswordResetRequested;
+use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
+use Exception;
+use Filament\Facades\Filament;
+use Filament\Notifications\Notification;
+use Illuminate\Contracts\Auth\CanResetPassword;
+use Illuminate\Support\Facades\Password;
+
+class RequestPasswordReset extends \Filament\Pages\Auth\PasswordReset\RequestPasswordReset
+{
+    public function request(): void
+    {
+        try {
+            $this->rateLimit(2);
+        } catch (TooManyRequestsException $exception) {
+            $this->getRateLimitedNotification($exception)?->send();
+
+            return;
+        }
+
+        $data = $this->form->getState();
+
+        $status = Password::broker(Filament::getAuthPasswordBroker())->sendResetLink(
+            $data,
+            function (CanResetPassword $user, string $token): void {
+                if (! method_exists($user, 'notify')) {
+                    $userClass = $user::class;
+
+                    throw new Exception("Model [{$userClass}] does not have a [notify()] method.");
+                }
+
+                // Dispatch our custom PasswordResetRequested event
+                PasswordResetRequested::dispatch($user, Filament::getResetPasswordUrl($token, $user));
+            },
+        );
+
+        if ($status !== Password::RESET_LINK_SENT) {
+            Notification::make()
+                ->title(__($status))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        Notification::make()
+            ->title(__($status))
+            ->success()
+            ->send();
+
+        $this->form->fill();
+    }
+}
+```
+
+### Register Custom Auth Pages
+
+As a last step, you need to register your custom auth pages for your panel:
+
+```php
+namespace App\Providers\Filament;
+
+use App\Filament\Admin\Pages\Auth\Register;
+use App\Filament\Admin\Pages\Auth\RequestPasswordReset;
+use App\Filament\Admin\Pages\Auth\EmailVerificationPrompt;
+
+class AdminPanelProvider extends PanelProvider
+{
+    public function panel(Panel $panel): Panel
+    {
+        return $panel
+            ->id('admin')
+            ->registration(Register::class)
+            ->passwordReset(RequestPasswordReset::class)
+            ->emailVerification(EmailVerificationPrompt::class)
+            // ...
+    }
+}
+```
 
 ## Changelog
 
