@@ -18,7 +18,7 @@ of [Unlayer Editor](https://docs.unlayer.com/builder/latest/email-builder).
 
 ## Live Demo
 
-To see the plugin in action, you can visit the [live demo](https://demo.filamentphp.com/o/mail-demo).
+To see the plugin in action, you can visit the [live demo](https://database-mail-demo.web-code.dev/).
 
 [![Youtube video](https://raw.githubusercontent.com/MartinPetricko/filament-database-mail-docs/refs/heads/main/assets/screenshots/video-thumb.png)](https://youtu.be/wexzG0_KjKg?si=KghM4dWLFoPVenRf)
 
