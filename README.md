@@ -875,6 +875,297 @@ class AdminPanelProvider extends PanelProvider
 }
 ```
 
+## Using without Filament Panel
+
+You can use this plugin without [Filament Panel](https://filamentphp.com/docs/3.x/panels), with only your TALL stack using Filament [Forms](https://filamentphp.com/docs/3.x/forms) and [Tables](https://filamentphp.com/docs/3.x/tables).
+
+### Listing Mail Templates
+
+1. Follow [Installation](https://filamentphp.com/docs/3.x/tables/installation) guide for [adding a table to a Livewire component](https://filamentphp.com/docs/3.x/tables/adding-a-table-to-a-livewire-component).
+2. Create a Livewire component for listing mail templates:
+
+```shell
+php artisan make:livewire ListMailTemplates
+```
+
+3. Setup your table listing mail templates:
+
+```php
+namespace App\Livewire;
+
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Tables\Actions;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Table;
+use Livewire\Component;
+use MartinPetricko\FilamentDatabaseMail\Resources\MailTemplateResource;
+use MartinPetricko\LaravelDatabaseMail\Models\MailTemplate;
+
+class ListMailTemplates extends Component implements HasForms, HasTable
+{
+    use InteractsWithForms;
+    use InteractsWithTable;
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->query(MailTemplate::query())
+            ->columns([
+                MailTemplateResource::getNameTableColumn(),
+                MailTemplateResource::getEventTableColumn(),
+                MailTemplateResource::getDelayTableColumn(),
+                MailTemplateResource::getIsActiveTableColumn()
+                    ->disabled(false),
+                MailTemplateResource::getCreatedAtTableColumn(),
+                MailTemplateResource::getUpdatedAtTableColumn(),
+            ])
+            ->filters([
+                MailTemplateResource::getEventTableFilter(),
+                MailTemplateResource::getIsActiveTableFilter(),
+            ])
+            ->actions([
+                Actions\EditAction::make()
+                    ->url(fn (MailTemplate $record) => route('mail_templates.edit', $record)),
+                Actions\DeleteAction::make(),
+            ]);
+    }
+
+    public function render()
+    {
+        return view('livewire.list-mail-templates');
+    }
+}
+
+```
+
+4. Render the table in your Livewire component:
+
+```bladehtml
+<div>
+    {{ $this->table }}
+</div>
+```
+
+5. [Render](https://livewire.laravel.com/docs/components#rendering-components) your Livewire component:
+
+```bladehtml
+@livewire('list-mail-templates')
+```
+
+### Creating Mail Template
+
+1. Follow [Installation](https://filamentphp.com/docs/3.x/forms/installation) guide for [adding a form to a Livewire component](https://filamentphp.com/docs/3.x/forms/adding-a-form-to-a-livewire-component).
+2. Create a Livewire component for creating mail template:
+
+```shell
+php artisan make:livewire CreateMailTemplate
+```
+
+3. Setup your form for creating mail templates:
+
+```php
+namespace App\Livewire;
+
+use Filament\Forms\Components;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Form;
+use Livewire\Component;
+use MartinPetricko\FilamentDatabaseMail\Resources\MailTemplateResource;
+use MartinPetricko\FilamentDatabaseMail\Resources\MailTemplateResource\Actions\Forms\LoadTemplateAction;
+use MartinPetricko\LaravelDatabaseMail\Models\MailTemplate;
+
+class CreateMailTemplate extends Component implements HasForms
+{
+    use InteractsWithForms;
+
+    public ?array $data = [];
+
+    public function mount(): void
+    {
+        $this->form->fill();
+    }
+
+    public function form(Form $form): Form
+    {
+        return $form
+            ->statePath('data')
+            ->schema([
+                Components\Section::make()
+                    ->columns([
+                        'md' => 3,
+                    ])
+                    ->schema([
+                        Components\Group::make([
+                            MailTemplateResource::getNameFormField(),
+                            MailTemplateResource::getEventFormField(),
+                            MailTemplateResource::getDelayFormField(),
+                            MailTemplateResource::getIsActiveFormField(),
+                        ]),
+                        Components\Group::make([
+                            MailTemplateResource::getRecipientsFormField(),
+                        ]),
+                        Components\Group::make([
+                            MailTemplateResource::getAttachmentsFormField(),
+                        ]),
+                    ]),
+                Components\Section::make('Mail')
+                    ->headerActions([
+                        LoadTemplateAction::make()
+                            ->visible(),
+                    ])
+                    ->schema([
+                        MailTemplateResource::getSubjectFormField(),
+                        MailTemplateResource::getBodyFormField(),
+                    ]),
+            ]);
+    }
+
+    public function create(): void
+    {
+        MailTemplate::create($this->form->getState());
+    }
+
+    public function render()
+    {
+        return view('livewire.create-mail-template');
+    }
+}
+```
+
+4. Render the form in your Livewire component:
+
+```bladehtml
+<div>
+    <form wire:submit="create">
+        {{ $this->form }}
+
+        <button type="submit">
+            Submit
+        </button>
+    </form>
+
+    <x-filament-actions::modals />
+</div>
+
+```
+
+5. [Render](https://livewire.laravel.com/docs/components#rendering-components) your Livewire component:
+
+```bladehtml
+@livewire('create-mail-template')
+```
+
+### Editing Mail Template
+
+1. Follow [Installation](https://filamentphp.com/docs/3.x/forms/installation) guide for [adding a form to a Livewire component](https://filamentphp.com/docs/3.x/forms/adding-a-form-to-a-livewire-component).
+2. Create a Livewire component for editing mail template:
+
+```shell
+php artisan make:livewire EditMailTemplate
+```
+
+3. Setup your form for editing mail templates:
+
+```php
+namespace App\Livewire;
+
+use Filament\Forms\Components;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Form;
+use Illuminate\View\View;
+use Livewire\Component;
+use MartinPetricko\FilamentDatabaseMail\Resources\MailTemplateResource;
+use MartinPetricko\FilamentDatabaseMail\Resources\MailTemplateResource\Actions\Forms\LoadTemplateAction;
+use MartinPetricko\LaravelDatabaseMail\Models\MailTemplate;
+
+class EditMailTemplate extends Component implements HasForms
+{
+    use InteractsWithForms;
+
+    public MailTemplate $mailTemplate;
+
+    public ?array $data = [];
+
+    public function mount(MailTemplate $mailTemplate): void
+    {
+        $this->mailTemplate = $mailTemplate;
+
+        $this->form->fill($mailTemplate->toArray());
+    }
+
+    public function form(Form $form): Form
+    {
+        return $form
+            ->statePath('data')
+            ->schema([
+                Components\Section::make()
+                    ->columns([
+                        'md' => 3,
+                    ])
+                    ->schema([
+                        Components\Group::make([
+                            MailTemplateResource::getNameFormField(),
+                            MailTemplateResource::getEventFormField(),
+                            MailTemplateResource::getDelayFormField(),
+                            MailTemplateResource::getIsActiveFormField(),
+                        ]),
+                        Components\Group::make([
+                            MailTemplateResource::getRecipientsFormField(),
+                        ]),
+                        Components\Group::make([
+                            MailTemplateResource::getAttachmentsFormField(),
+                        ]),
+                    ]),
+                Components\Section::make('Mail')
+                    ->headerActions([
+                        LoadTemplateAction::make()
+                            ->visible(),
+                    ])
+                    ->schema([
+                        MailTemplateResource::getSubjectFormField(),
+                        MailTemplateResource::getBodyFormField(),
+                    ]),
+            ]);
+    }
+
+    public function update(): void
+    {
+        $this->mailTemplate->update($this->form->getState());
+    }
+
+    public function render(): View
+    {
+        return view('livewire.edit-mail-template');
+    }
+}
+```
+
+4. Render the form in your Livewire component:
+
+```bladehtml
+<div>
+    <form wire:submit="update">
+        {{ $this->form }}
+
+        <button type="submit">
+            Submit
+        </button>
+    </form>
+
+    <x-filament-actions::modals />
+</div>
+```
+
+5. [Render](https://livewire.laravel.com/docs/components#rendering-components) your Livewire component:
+
+```bladehtml
+@livewire('edit-mail-template', ['mailTemplate' => $mailTemplate])
+```
+
 ## Changelog
 
 Please see [CHANGELOG](https://github.com/MartinPetricko/filament-database-mail-docs/blob/main/CHANGELOG.md) for more
