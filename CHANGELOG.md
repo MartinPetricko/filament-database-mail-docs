@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.3] - 2025-05-08
+### Fixed
+- Fixed MailTemplateResource pages resource error if plugin is registered on non default panel
+
 ## [1.1.2] - 2025-04-15
 ### Changed
 - Extracted MailTemplateResource table columns and filters to separate methods
@@ -23,7 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added initial version of Filament Database Mail
 
-[unreleased]: https://github.com/martinpetricko/filament-database-mail/compare/1.1.2...HEAD
+[unreleased]: https://github.com/martinpetricko/filament-database-mail/compare/1.1.3...HEAD
+[1.1.3]: https://github.com/martinpetricko/filament-database-mail/compare/1.1.2...1.1.3
 [1.1.2]: https://github.com/martinpetricko/filament-database-mail/compare/1.1.1...1.1.2
 [1.1.1]: https://github.com/martinpetricko/filament-database-mail/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/martinpetricko/filament-database-mail/compare/1.0.0...1.1.0
