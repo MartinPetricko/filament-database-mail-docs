@@ -187,6 +187,7 @@ return [
         \MartinPetricko\LaravelDatabaseMail\Properties\Resolvers\EloquentResolver::class,
         \MartinPetricko\LaravelDatabaseMail\Properties\Resolvers\BooleanResolver::class,
         \MartinPetricko\LaravelDatabaseMail\Properties\Resolvers\StringResolver::class,
+        \MartinPetricko\LaravelDatabaseMail\Properties\Resolvers\ListResolver::class,
     ],
 
     /**
@@ -731,6 +732,9 @@ class Register extends \Filament\Pages\Auth\Register
 {
     protected function sendEmailVerificationNotification(Model $user): void
     {
+        // Dispatch our custom Registered event
+        Registered::dispatch($user);
+        
         if (!$user instanceof MustVerifyEmail) {
             return;
         }
@@ -744,9 +748,6 @@ class Register extends \Filament\Pages\Auth\Register
 
             throw new Exception("Model [{$userClass}] does not have a [notify()] method.");
         }
-
-        // Dispatch our custom Registered event
-        Registered::dispatch($user);
 
         // Dispatch our custom EmailVerificationRequested event
         EmailVerificationRequested::dispatch($user, Filament::getVerifyEmailUrl($user));
