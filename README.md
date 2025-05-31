@@ -262,6 +262,7 @@ Register and configure plugin for your filament panel:
 ```php
 ->plugins([
     \MartinPetricko\FilamentDatabaseMail\FilamentDatabaseMailPlugin::make()
+        ->cluster(Cluster::class)
         ->navigationLabel('Mails')
         ->navigationGroup('Settings')
         ->navigationIcon('heroicon-o-envelope')
