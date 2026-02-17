@@ -37,6 +37,11 @@ To see the plugin in action, you can visit the [live demo](https://database-mail
 - See any exceptions that occurred while sending email due to badly formatted mail templates
 - Easy to extend
 
+## Upgrading from v2 to v3
+
+If you are upgrading from v2 to v3, you will need to import plugin styles in your custom filament theme. You can find
+more information in the [Setting up Filament Database Mail](#setting-up-filament-database-mail) section.
+
 ## Screenshots
 
 #### List of Email Templates
@@ -136,6 +141,20 @@ Password: 8c21df8f-6273-4932-b4ba-8bcc723ef500
 ```
 
 ### Setting up Filament Database Mail
+
+The plugin follows Filament's theming rules. So, to use the
+plugin [create a custom theme](https://filamentphp.com/docs/5.x/styling/overview#creating-a-custom-theme) if you haven't
+already, and add the following line to your `theme.css` file:
+
+```css
+@import '../../../../vendor/martinpetricko/filament-database-mail/resources/css/index.css';
+```
+
+Now build your theme using:
+
+```bash
+npm run build
+```
 
 Publish and run the migrations with:
 
