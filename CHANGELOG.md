@@ -5,7 +5,13 @@ All notable changes to `filament-database-mail` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/martinpetricko/filament-database-mail/compare/3.0.0...HEAD)
+## [Unreleased](https://github.com/martinpetricko/filament-database-mail/compare/4.0.0...HEAD)
+
+## [4.0.0](https://github.com/martinpetricko/filament-database-mail/compare/3.0.0...4.0.0) - 2026-02-22
+
+### Upgraded
+
+- Upgraded martinpetricko/laravel-database-mail to v2
 
 ## [3.0.0](https://github.com/martinpetricko/filament-database-mail/compare/1.2.2...3.0.0) - 2026-02-17
 

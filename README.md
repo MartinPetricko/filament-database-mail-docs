@@ -37,7 +37,21 @@ To see the plugin in action, you can visit the [live demo](https://database-mail
 - See any exceptions that occurred while sending email due to badly formatted mail templates
 - Easy to extend
 
-## Upgrading from v2 to v3
+### Upgrading
+
+#### v3 to v4
+
+New migration was added that needs to be published and migrated
+
+```bash
+php artisan vendor:publish --tag=database-mail-migrations
+```
+
+```bash
+php artisan migrate
+```
+
+#### v2 to v3
 
 If you are upgrading from v2 to v3, you will need to import plugin styles in your custom filament theme. You can find
 more information in the [Setting up Filament Database Mail](#setting-up-filament-database-mail) section.
